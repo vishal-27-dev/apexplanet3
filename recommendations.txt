@@ -1,0 +1,8 @@
+# recommendations.txt
+3 Idiots
+Sacred Games
+Mirzapur
+Lagaan
+Gangs of Wasseypur
+Paatal Lok
+# Add more titles here...
