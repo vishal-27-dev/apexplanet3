@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // You NEED to find the correct endpoint for SEARCHING by title in the imdb236 API docs
     // This is a GUESS - REPLACE IT with the actual search endpoint URL format
-    const SEARCH_API_URL_BASE = `https://imdb236.p.rapidapi.com/search?query=`;
+    const SEARCH_API_URL_BASE = `https://imdb236.p.rapidapi.com/imdb/search?type=movie&genre=Drama&rows=25&sortOrder=ASC&sortField=id`;
 
     const apiOptions = {
         method: 'GET',
