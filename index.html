@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vis Recommendations - Curated Binge-Worthy Hits</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Add path to your favicon here if you have one -->
+    <!-- <link rel="icon" href="/assets/favicon.ico"> -->
+</head>
+<body>
+    <div class="page-container">
+
+        <header class="main-header">
+            <div class="logo-placeholder">VisRecs</div> <!-- Replace with your Logo <img> or SVG -->
+            <h1>Vis Recommendations</h1>
+            <p class="tagline">
+                Stop scrolling, start watching! Discover personally curated Bollywood gems and thrilling web series perfect for your next binge, all researched so you don't waste time searching.
+            </p>
+        </header>
+
+        <!-- Recommendations Section -->
+        <section id="recommendations-section">
+            <h2>Curated Picks</h2>
+            <div id="recommendations-loading" class="loading-message">
+                <div class="spinner"></div> Loading recommendations...
+            </div>
+            <div id="recommendations-error" class="error-message" style="display: none;"></div>
+            <div id="recommendations-grid" class="recommendations-grid">
+                <!-- Recommendation cards will be dynamically inserted here by script.js -->
+                <!-- Example Card Structure (for reference):
+                <a href="details.html?id=tt123456" class="recommendation-card-link">
+                    <div class="recommendation-card">
+                        <img src="placeholder.jpg" alt="Movie Poster" loading="lazy">
+                        <div class="card-content">
+                            <h3>Movie Title</h3>
+                            <p class="card-meta">Year | Genre</p>
+                            <div class="rating">⭐ 8.5</div>
+                        </div>
+                    </div>
+                </a>
+                 -->
+            </div>
+        </section>
+
+        <!-- Side Content: Contact & Watchlist -->
+        <section class="side-content-wrapper">
+
+            <!-- Watchlist (Previously To-Do List) -->
+            <div id="watchlist-section" class="side-block watchlist-block">
+                <h3>My Watchlist</h3>
+                <p class="watchlist-warning">Items are saved temporarily and will be lost if you refresh or close the page.</p>
+                <div class="watchlist-input-area">
+                    <input type="text" id="watchlistItemInput" placeholder="Manually add a title..." aria-label="Add title to watchlist">
+                    <button id="addWatchlistItemButton" type="button" title="Add to Watchlist">+</button>
+                </div>
+                <ul id="watchlistList">
+                    <!-- Watchlist items will be added here by script.js -->
+                </ul>
+            </div>
+
+            <!-- Contact Form -->
+            <div id="contact-section" class="side-block contact-block">
+                <h3>Get In Touch</h3>
+                <form id="contactForm" novalidate>
+                    <!-- Replace YOUR_FORM_ID with your actual Formspree endpoint ID -->
+                    <input type="hidden" name="_subject" value="New message from Vis Recommendations!">
+                    <div class="form-group-inline">
+                         <div class="form-group">
+                             <label for="name">Name</label>
+                             <input type="text" id="name" name="name" required>
+                             <small class="error-message"></small>
+                         </div>
+                         <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                             <small class="error-message"></small>
+                        </div>
+                    </div>
+                     <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" rows="4" required></textarea>
+                         <small class="error-message"></small>
+                    </div>
+                    <button type="submit" class="form-submit-btn">Send</button>
+                     <div id="form-status" class="form-status-message"></div>
+                </form>
+            </div>
+
+        </section>
+
+        <footer class="main-footer">
+             <p>© <span id="currentYear"></span> Vis Recommendations | Designed by <a href="https://github.com/vishal-27-dev" target="_blank" rel="noopener noreferrer">Vishal-Kumar-Rajak</a></p>
+        </footer>
+    </div> <!-- end of .page-container -->
+
+    <!-- Disqus Comment Count (Load async) - Place before closing </body> -->
+    <script id="dsq-count-scr" src="//vis-recommendations.disqus.com/count.js" async></script>
+    <script src="script.js"></script>
+</body>
+</html>
