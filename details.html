@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Title will be set dynamically -->
+    <title>Loading Details...</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+     <!-- Add path to your favicon here -->
+     <!-- <link rel="icon" href="/assets/favicon.ico"> -->
+</head>
+<body>
+    <div class="page-container details-page-container">
+
+        <header class="details-header">
+             <a href="/" class="back-link">← Back to Recommendations</a>
+             <!-- Dynamic Title H1 -->
+            <h1 id="details-title">Loading...</h1>
+        </header>
+
+        <main id="details-content" class="details-content-area">
+            <div id="details-loading" class="loading-message active">
+                 <div class="spinner"></div> Fetching details...
+             </div>
+             <div id="details-error" class="error-message" style="display: none;"></div>
+
+             <div class="details-main-flex">
+                 <!-- Left Column: Poster -->
+                <div class="details-poster">
+                    <img id="details-poster-img" src="placeholder.jpg" alt="Movie Poster">
+                </div>
+
+                <!-- Right Column: Info -->
+                <div class="details-info">
+                    <section class="details-section">
+                        <h2>Synopsis</h2>
+                        <p id="details-plot">Loading plot...</p>
+                    </section>
+
+                    <section class="details-section details-meta">
+                         <h2>Details</h2>
+                         <p><strong>Year:</strong> <span id="details-year">N/A</span></p>
+                         <p><strong>Genre:</strong> <span id="details-genre">N/A</span></p>
+                         <p><strong>Cast:</strong> <span id="details-cast">N/A</span></p>
+                         <p><strong>IMDb Rating:</strong> <span id="details-rating">N/A</span>
+                             <a id="imdb-link" href="#" target="_blank" rel="noopener noreferrer" style="display: none;">(View on IMDb)</a>
+                         </p>
+                    </section>
+
+                     <section class="details-section streaming-section">
+                         <h2>Where to Watch</h2>
+                         <div id="streaming-placeholder" class="streaming-logos">
+                             <!-- Streaming logos/links will be added here if available -->
+                             <p>Streaming availability data is limited. Check popular platforms.</p>
+                             <!-- Example: <a href="#" target="_blank"><img src="assets/netflix_logo.png" alt="Netflix"></a> -->
+                         </div>
+                     </section>
+
+                      <section class="details-section reviews-section">
+                         <h2>IMDb Reviews</h2>
+                          <div id="reviews-placeholder">
+                               <p>Direct IMDb user review integration requires advanced methods. Please check the reviews on the <a id="imdb-link-reviews" href="#" target="_blank" rel="noopener noreferrer" style="display: none;">IMDb page</a>.</p>
+                          </div>
+                     </section>
+                 </div>
+             </div>
+        </main>
+
+        <section id="comments-section" class="details-comments">
+            <h2>Comments</h2>
+            <div id="disqus_thread"></div>
+            <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+        </section>
+
+        <footer class="main-footer">
+            <p>© <span id="currentYearDetails"></span> Vis Recommendations | <a href="/">Back Home</a></p>
+        </footer>
+
+    </div><!-- end .page-container -->
+
+    <!-- Disqus Configuration & Embed Script (Must be inside Body) -->
+    <script>
+        var disqus_config = function () {
+             // These will be set dynamically by details.js
+            // this.page.url = PAGE_URL;
+            // this.page.identifier = PAGE_IDENTIFIER;
+        };
+
+        (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        // IMPORTANT: Replace 'vis-recommendations' with your actual Disqus shortname!
+        s.src = 'https://vis-recommendations.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+        })();
+    </script>
+
+    <script src="details.js"></script>
+</body>
+</html>
