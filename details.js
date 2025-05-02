@@ -3,11 +3,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Constants & Setup ---
     const detailsLoading = document.getElementById('details-loading');
     const detailsError = document.getElementById('details-error');
-    const detailsContent = document.getElementById('details-content'); // Main content area
+    const detailsContent = document.getElementById('details-content');
 
     // Elements to populate
     const titleElement = document.getElementById('details-title');
-    const pageTitle = document.querySelector('title'); // The <title> tag
+    const pageTitle = document.querySelector('title');
     const posterImg = document.getElementById('details-poster-img');
     const plotElement = document.getElementById('details-plot');
     const yearElement = document.getElementById('details-year');
@@ -17,14 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const imdbLink = document.getElementById('imdb-link');
     const imdbLinkReviews = document.getElementById('imdb-link-reviews');
     const streamingPlaceholder = document.getElementById('streaming-placeholder');
+    const commentsSection = document.getElementById('comments-section');
 
-    // API details (must match script.js) - Repetitive, but needed per-page
-    const RAPIDAPI_KEY = '30abe74114mshb8417c845d44756p15e916jsnbf3a6a245f97'; // <-- YOUR KEY HERE
-    const RAPIDAPI_HOST = 'imdb236.p.rapidapi.com'; // <-- YOUR HOST HERE
+    // API credentials (must match script.js)
+    const RAPIDAPI_KEY = '30abe74114mshb8417c845d44756p15e916jsnbf3a6a245f97'; // Your key
+    const RAPIDAPI_HOST = 'imdb236.p.rapidapi.com';     // Correct Host
 
-    // You NEED to find the correct endpoint for getting DETAILS BY ID in the imdb236 API docs
-    // This is a GUESS - REPLACE IT with the actual detail endpoint URL format
-    const DETAIL_API_URL_BASE = `https://imdb236.p.rapidapi.com/movie_detail?imdb_id=`;
+    // !!! CRITICAL ASSUMPTION !!!
+    // You MUST find the correct endpoint URL in the imdb236 docs for getting details BY IMDb ID (e.g., tt6473300)
+    // Replace the URL below with the ACTUAL endpoint. This is just a GUESS.
+    const DETAIL_API_URL_BASE = `https://imdb236.p.rapidapi.com/get_detail?id=`; // <--- VERIFY & REPLACE THIS URL BASE
+    // Or maybe it's like: `https://imdb236.p.rapidapi.com/title_detail?imdb_id=`
+    // Check the API documentation!
 
      const apiOptions = {
         method: 'GET',
@@ -37,183 +41,182 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Fetch & Display Logic ---
 
     async function fetchAndDisplayDetails() {
-         showLoading();
+        if (commentsSection) commentsSection.style.display = 'none'; // Hide comments initially
+        showLoading();
         try {
-            // 1. Get movie ID from URL parameter
             const urlParams = new URLSearchParams(window.location.search);
             const movieId = urlParams.get('id');
 
-            if (!movieId) {
-                throw new Error("Movie ID not found in URL.");
+            if (!movieId || !movieId.startsWith('tt')) { // Basic validation for IMDb ID format
+                throw new Error("Valid Movie ID (tt...) not found in URL.");
             }
-
-             // 2. Basic Key Check
-             if (!RAPIDAPI_KEY || RAPIDAPI_KEY.includes('YOUR') || RAPIDAPI_KEY.length < 20) {
-                 throw new Error("RapidAPI Key is missing or invalid. Please set it in details.js");
+            if (!RAPIDAPI_KEY || RAPIDAPI_KEY.length < 20 || RAPIDAPI_KEY.includes('YOUR')) {
+                 throw new Error("RapidAPI Key is missing or seems invalid in details.js");
+             }
+             if (!DETAIL_API_URL_BASE || DETAIL_API_URL_BASE.includes('YOUR_ACTUAL_ENDPOINT')) {
+                 throw new Error("Detail API endpoint URL is not correctly set in details.js. Please verify and replace the placeholder/guess.");
              }
 
-             // 3. Construct Detail API URL
-             // IMPORTANT: Check if imdb236 detail endpoint uses imdb_id= or some other param
-             const detailUrl = `${DETAIL_API_URL_BASE}${movieId}`;
+            // Construct the *assumed* Detail API URL
+            const detailUrl = `${DETAIL_API_URL_BASE}${movieId}`;
 
-             // 4. Fetch data from API
-             const response = await fetch(detailUrl, apiOptions);
-             if (!response.ok) {
-                 const errorBody = await response.text();
-                 console.error(`API Error (${response.status}) for ID "${movieId}": ${errorBody}`);
-                 throw new Error(`API request failed for "${movieId}" with status ${response.status}`);
+            const response = await fetch(detailUrl, apiOptions);
+            if (!response.ok) {
+                const errorText = await response.text();
+                 console.error(`API Error (${response.status}) for ID "${movieId}": ${errorText}`);
+                 throw new Error(`API request failed for "${movieId}" (Status: ${response.status}). Check the detail endpoint URL and ID validity.`);
             }
-             const data = await response.json();
+            const data = await response.json();
 
-            // 5. Check if data is valid
-            // IMPORTANT: The structure of 'data' depends entirely on the imdb236 DETAIL endpoint
-            // Adapt the checks and property access below based on the actual API response.
-             if (!data || (Array.isArray(data) && data.length === 0) /* || !data.title */) { // Add check based on response
-                 console.warn("API returned empty or invalid data for ID:", movieId, data);
-                 throw new Error("Could not retrieve details for this item.");
+            // --- !!! DATA PARSING ASSUMPTION !!! ---
+            // The structure of 'data' depends ENTIRELY on the response from your **DETAIL** endpoint.
+            // Adapt all 'data.propertyName' access below based on the ACTUAL detail response structure.
+            // I'm using names similar to the search response as a starting point - this is likely INACCURATE for the detail endpoint.
+
+            if (!data /* || !data.some_key_that_must_exist_in_detail */) {
+                 throw new Error("Received invalid or empty data structure from the detail API.");
              }
 
-            // 6. Populate page elements
-            // ===> ADAPT PROPERTY NAMES BASED ON imdb236 DETAIL RESPONSE <===
-             const movieDetails = data; // Assuming 'data' is the main detail object
+            const movieDetails = data; // Assuming the root object contains the details
 
-             const movieTitle = movieDetails.title || 'Details'; // ADJUST .title
+            // Populate common elements (ADAPT PROPERTY NAMES)
+            const movieTitle = movieDetails.primaryTitle || movieDetails.title || 'Details';
             titleElement.textContent = movieTitle;
-             pageTitle.textContent = `${movieTitle} - Vis Recommendations`; // Update browser tab title
+            pageTitle.textContent = `${movieTitle} - Vis Recommendations`;
 
-             // Use placeholder if poster URL invalid
-             const posterSrc = movieDetails.image && movieDetails.image.startsWith('http') ? movieDetails.image : 'assets/placeholder-poster.png'; // ADJUST .image
+            const posterSrc = movieDetails.primaryImage || movieDetails.image || 'assets/placeholder-poster.png';
             posterImg.src = posterSrc;
             posterImg.alt = `${movieTitle} Poster`;
+             posterImg.onerror=() => { posterImg.src='assets/placeholder-poster.png'; }; // Set placeholder on error
 
-             plotElement.textContent = movieDetails.plot || movieDetails.description || 'Plot information not available.'; // ADJUST .plot / .description
+            // Plot might be named differently, check response
+             plotElement.textContent = movieDetails.plot || movieDetails.description || 'Plot information not available.';
 
-             yearElement.textContent = movieDetails.year || 'N/A'; // ADJUST .year
-             genreElement.textContent = movieDetails.genres ? movieDetails.genres.join(', ') : 'N/A'; // ADJUST .genres
-             castElement.textContent = movieDetails.cast ? movieDetails.cast.slice(0, 5).map(actor => actor.name).join(', ') + '...' : 'N/A'; // ADJUST .cast.name, limit cast displayed
+            // Basic details (ADAPT PROPERTY NAMES)
+            yearElement.textContent = movieDetails.startYear || movieDetails.year || 'N/A';
+            genreElement.textContent = movieDetails.genres ? movieDetails.genres.join(', ') : 'N/A';
+            ratingElement.textContent = movieDetails.averageRating ? `⭐ ${movieDetails.averageRating}` : 'N/A';
 
-
-            // IMDb Rating & Link
-            const ratingValue = movieDetails.rating ? movieDetails.rating.value : null; // ADJUST .rating.value
-             if (ratingValue) {
-                ratingElement.textContent = `⭐ ${ratingValue}`;
-             } else {
-                 ratingElement.textContent = 'N/A';
+             // Cast (Assuming structure - ADAPT if needed)
+            let castText = 'N/A';
+            if (movieDetails.actors && Array.isArray(movieDetails.actors)) { // Example structure: actors array
+                castText = movieDetails.actors.slice(0, 6).map(actor => actor.name || 'Unknown').join(', ') + (movieDetails.actors.length > 6 ? '...' : '');
+             } else if (movieDetails.cast && Array.isArray(movieDetails.cast)) { // Alternative structure: cast array
+                  castText = movieDetails.cast.slice(0, 6).map(actor => actor.name || 'Unknown').join(', ') + (movieDetails.cast.length > 6 ? '...' : '');
              }
-             // Set IMDb link using the ID from URL
-             const imdbUrl = `https://www.imdb.com/title/${movieId}/`;
-            imdbLink.href = imdbUrl;
-            imdbLink.style.display = 'inline';
-             imdbLinkReviews.href = `${imdbUrl}reviews`; // Link for reviews placeholder
-             imdbLinkReviews.style.display = 'inline';
+             castElement.textContent = castText;
 
+            // Set IMDb links (These are static based on ID, should work)
+            const imdbUrl = `https://www.imdb.com/title/${movieId}/`;
+            if(imdbLink) imdbLink.href = imdbUrl;
+            if(imdbLink) imdbLink.style.display = 'inline';
+            if(imdbLinkReviews) imdbLinkReviews.href = `${imdbUrl}reviews`;
+            if(imdbLinkReviews) imdbLinkReviews.style.display = 'inline';
 
-            // Streaming Info Placeholder (Needs specific API integration)
-            populateStreamingInfo(movieDetails.watch_providers); // ADJUST .watch_providers if API provides this
+            // Populate Streaming Info (Highly API dependent - Keep as placeholder for now)
+            populateStreamingInfo(movieDetails.externalLinks); // Pass whatever provider data might exist (likely limited)
 
-             // 7. Initialize Disqus Comments
+            // Initialize Disqus ONLY after successfully loading data
             initializeDisqus(movieId, window.location.href);
+             if (commentsSection) commentsSection.style.display = 'block'; // Show comments section
 
             hideLoading();
 
         } catch (error) {
-            console.error("Error fetching details:", error);
-            showError(error.message || "An error occurred loading details.");
+            console.error("Error fetching or displaying details:", error);
+            showError(error.message || "An error occurred loading details. Please check the URL and API status.");
         }
     }
 
-     // Placeholder for populating streaming info - NEEDS API DATA
-     function populateStreamingInfo(providersData) {
-         streamingPlaceholder.innerHTML = ''; // Clear default message
-         if (!providersData || Object.keys(providersData).length === 0) {
-             streamingPlaceholder.innerHTML = '<p>Streaming availability data unavailable.</p>';
-             return;
+     function populateStreamingInfo(externalLinks) {
+        if (!streamingPlaceholder) return;
+        streamingPlaceholder.innerHTML = ''; // Clear default
+        let foundLink = false;
+         if (externalLinks && Array.isArray(externalLinks) && externalLinks.length > 0) {
+            streamingPlaceholder.innerHTML = '<h5>Check Availability:</h5>'; // Add heading
+             externalLinks.forEach(link => {
+                if (typeof link === 'string' && link.startsWith('http')) {
+                    // Basic attempt to guess provider from URL - very crude!
+                     let providerName = 'Official Site';
+                    try { providerName = new URL(link).hostname.replace('www.', ''); } catch(e){}
+
+                     const linkElement = document.createElement('a');
+                     linkElement.href = link;
+                     linkElement.textContent = providerName;
+                     linkElement.target = '_blank';
+                     linkElement.rel = 'noopener noreferrer nofollow';
+                     streamingPlaceholder.appendChild(linkElement);
+                     streamingPlaceholder.appendChild(document.createTextNode(' | ')); // Separator
+                    foundLink = true;
+                }
+            });
+             // Remove trailing separator if links were added
+             if(foundLink && streamingPlaceholder.lastChild && streamingPlaceholder.lastChild.nodeType === Node.TEXT_NODE) {
+                 streamingPlaceholder.removeChild(streamingPlaceholder.lastChild);
+             }
          }
 
-         // ===> This part is HIGHLY DEPENDENT on the API's provider data structure <===
-         // Example logic if 'providersData' is structured like TMDb's common output
-         // const flatrate = providersData.flatrate || [];
-         // const buy = providersData.buy || [];
-         //
-         // if (flatrate.length > 0) {
-         //     streamingPlaceholder.innerHTML += '<h4>Stream:</h4>';
-         //     flatrate.forEach(p => {
-         //         // Assuming p.logo_path needs base URL and p.provider_name exists
-         //         // streamingPlaceholder.innerHTML += `<img src="IMAGE_BASE_URL${p.logo_path}" alt="${p.provider_name}" title="${p.provider_name}">`;
-         //         streamingPlaceholder.innerHTML += `<span class="provider-logo" title="${p.provider_name}">${p.provider_name}</span> `; // Simple text fallback
-         //     });
-         // }
-         // Add similar logic for 'buy', 'rent' etc.
-
-          // Fallback if structure is unknown or complex for now:
-          streamingPlaceholder.innerHTML = '<p>Check popular streaming platforms.</p>';
-
+        if (!foundLink) {
+            streamingPlaceholder.innerHTML = '<p>Specific streaming links unavailable via this API. Check popular platforms.</p>';
+        }
      }
 
-     function initializeDisqus(pageIdentifier, pageUrl) {
-         // IMPORTANT: Ensure disqus_config is available globally *before* embed.js runs
-         // This assumes the config setup in details.html runs first.
-        if (typeof disqus_config === 'function') {
-            disqus_config = function () { // Redefine the function
-                this.page.url = pageUrl;
-                this.page.identifier = pageIdentifier; // Use movie ID as unique ID
-            };
-        } else {
-             console.warn("Disqus config not found or already processed. Setting directly (might be less reliable).");
-             // Less ideal fallback if script timing is off:
-             window.DISQUS_CONFIG = { // Attempt direct global set (use if above fails)
-                  page: {
-                     url: pageUrl,
-                     identifier: pageIdentifier
-                 }
-              };
-        }
 
-         // Optional: Reset Disqus if needed for dynamic pages (SPA-like behavior, maybe not needed for Jekyll)
-         /*
-         if (window.DISQUS) {
-             DISQUS.reset({
-                 reload: true,
-                 config: function () {
-                     this.page.url = pageUrl;
-                     this.page.identifier = pageIdentifier;
-                 }
-             });
-         }
-         */
+     function initializeDisqus(pageIdentifier, pageUrl) {
+         // Make sure your Disqus shortname is correctly set in details.html embed code
+         // Example: s.src = '//YOUR_SHORTNAME.disqus.com/embed.js';
+
+         window.disqus_config = function () {
+            this.page.url = pageUrl;
+            this.page.identifier = pageIdentifier; // Unique ID for the comment thread
+         };
+
+        // Check if Disqus is already loaded (e.g., for SPAs, though not strictly needed for Jekyll)
+        // This reset helps if navigating between detail pages dynamically (if you implement that later)
+        if (window.DISQUS) {
+            DISQUS.reset({
+                reload: true,
+                config: window.disqus_config // Pass the function directly
+            });
+        } else {
+            // If not loaded, the embed script in details.html will pick up window.disqus_config
+            console.log("Disqus config set. Embed script should load it.");
+        }
      }
 
 
     function showLoading() {
-        detailsLoading.classList.add('active');
-        detailsError.style.display = 'none';
-        // Optionally hide main content parts while loading
+        if(detailsLoading) detailsLoading.classList.add('active');
+        if(detailsError) detailsError.style.display = 'none';
         const mainFlex = document.querySelector('.details-main-flex');
-         if (mainFlex) mainFlex.style.opacity = '0.3';
+         if (mainFlex) mainFlex.style.visibility = 'hidden'; // Hide content gently
+        if (commentsSection) commentsSection.style.display = 'none'; // Hide comments
      }
 
     function hideLoading() {
-        detailsLoading.classList.remove('active');
-        // Show content
-         const mainFlex = document.querySelector('.details-main-flex');
-         if (mainFlex) mainFlex.style.opacity = '1';
+        if(detailsLoading) detailsLoading.classList.remove('active');
+        const mainFlex = document.querySelector('.details-main-flex');
+         if (mainFlex) mainFlex.style.visibility = 'visible'; // Show content
+         // Comments shown after data load success in fetchAndDisplayDetails
      }
 
     function showError(message) {
-        detailsLoading.classList.remove('active');
-        detailsError.textContent = message;
-        detailsError.style.display = 'block';
-        // Hide other content areas if error is critical
+        if(detailsLoading) detailsLoading.classList.remove('active');
+        if(detailsError) {
+            detailsError.innerHTML = `⚠️ ${message}`; // Use innerHTML to render icon
+            detailsError.style.display = 'block';
+        }
+        // Keep content container visible but hide internal parts or show error within it
         const mainFlex = document.querySelector('.details-main-flex');
-         if (mainFlex) mainFlex.style.display = 'none';
-     }
+        if (mainFlex) mainFlex.style.display = 'none'; // Hide main content area on critical error
+        if (commentsSection) commentsSection.style.display = 'none';
+    }
 
-     // --- Utility: Update Year in Footer ---
+    // --- Utility: Update Year in Footer ---
      const currentYearSpanDetails = document.getElementById('currentYearDetails');
      if (currentYearSpanDetails) {
          currentYearSpanDetails.textContent = new Date().getFullYear();
      }
-
 
     // --- Initial Load ---
     fetchAndDisplayDetails();
